@@ -49,19 +49,27 @@ export default function FlowsMessagesTableExample() {
     },
     {
       id: '4',
-      businessProcess: 'Participant to Participant',
-      function: 'Payment return B2 -> B1',
-      msgType: 'pacs.004',
-      sender: 'B2',
-      receiver: 'B1',
-      debitAccount: 'B2 SA',
-      creditAccount: 'B1 SA',
-      futureDated: true,
-      queueType: 'T+0..9',
-      priority: '99',
+      businessProcess: '3d party payments',
+      function: '3d party',
+      msgType: 'pacs.008',
+      sender: 'External',
+      receiver: 'CB',
+      debitAccount: 'EXT SA',
+      creditAccount: 'CB SA',
+      futureDated: false,
+      queueType: 'T+0',
+      priority: 'N/A',
       selected: false,
     },
   ]);
 
-  return <FlowsMessagesTable flows={flows} onChange={setFlows} />;
+  const selectedProcesses = ['Participant to Participant', '3d party payments'];
+
+  return (
+    <FlowsMessagesTable
+      flows={flows}
+      selectedBusinessProcesses={selectedProcesses}
+      onChange={setFlows}
+    />
+  );
 }

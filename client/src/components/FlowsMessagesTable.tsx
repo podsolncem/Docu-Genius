@@ -3,13 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, X, Settings2, CheckCircle2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Search, X, Settings2, CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
 
 export interface MessageFlow {
   id: string;
@@ -39,15 +39,28 @@ export interface MessageFlow {
 
 interface FlowsMessagesTableProps {
   flows: MessageFlow[];
+  selectedBusinessProcesses: string[];
   onChange: (flows: MessageFlow[]) => void;
 }
 
-export default function FlowsMessagesTable({ flows, onChange }: FlowsMessagesTableProps) {
+export default function FlowsMessagesTable({ 
+  flows, 
+  selectedBusinessProcesses, 
+  onChange 
+}: FlowsMessagesTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingFlow, setEditingFlow] = useState<MessageFlow | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedProcesses, setExpandedProcesses] = useState<Set<string>>(
+    new Set(selectedBusinessProcesses)
+  );
 
-  const filteredFlows = flows.filter((flow) => {
+  // Filter flows to only show those from selected business processes
+  const relevantFlows = flows.filter((flow) =>
+    selectedBusinessProcesses.includes(flow.businessProcess)
+  );
+
+  const filteredFlows = relevantFlows.filter((flow) => {
     const search = searchTerm.toLowerCase();
     return (
       flow.businessProcess.toLowerCase().includes(search) ||
@@ -57,17 +70,35 @@ export default function FlowsMessagesTable({ flows, onChange }: FlowsMessagesTab
     );
   });
 
+  // Group flows by business process
+  const flowsByProcess = filteredFlows.reduce((acc, flow) => {
+    if (!acc[flow.businessProcess]) {
+      acc[flow.businessProcess] = [];
+    }
+    acc[flow.businessProcess].push(flow);
+    return acc;
+  }, {} as Record<string, MessageFlow[]>);
+
+  const toggleProcess = (processName: string) => {
+    const newExpanded = new Set(expandedProcesses);
+    if (newExpanded.has(processName)) {
+      newExpanded.delete(processName);
+    } else {
+      newExpanded.add(processName);
+    }
+    setExpandedProcesses(newExpanded);
+  };
+
   const handleToggle = (id: string) => {
     onChange(flows.map((f) => (f.id === id ? { ...f, selected: !f.selected } : f)));
   };
 
-  const handleToggleAll = () => {
-    const allSelected = filteredFlows.every((f) => f.selected);
+  const handleToggleAllInProcess = (processName: string) => {
+    const processFlows = flowsByProcess[processName];
+    const allSelected = processFlows.every((f) => f.selected);
     onChange(
       flows.map((f) =>
-        filteredFlows.find((ff) => ff.id === f.id)
-          ? { ...f, selected: !allSelected }
-          : f
+        f.businessProcess === processName ? { ...f, selected: !allSelected } : f
       )
     );
   };
@@ -90,135 +121,217 @@ export default function FlowsMessagesTable({ flows, onChange }: FlowsMessagesTab
     setEditingFlow(null);
   };
 
-  const selectedCount = flows.filter((f) => f.selected).length;
-  const businessProcessCount = new Set(flows.filter((f) => f.selected).map((f) => f.businessProcess)).size;
+  const selectedCount = relevantFlows.filter((f) => f.selected).length;
+  const configuredCount = relevantFlows.filter((f) => f.transactionType).length;
 
   return (
     <div className="max-w-7xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Flows & Messages</CardTitle>
-          <CardDescription>
-            Select message flows and configure their parameters
-          </CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <CardTitle>Flows & Messages</CardTitle>
+              <CardDescription>
+                Configure flows for your selected business processes
+              </CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <Badge variant="outline" className="gap-2">
+                <span className="font-semibold">{selectedCount}</span>
+                <span className="text-muted-foreground">of {relevantFlows.length} selected</span>
+              </Badge>
+              <Badge variant={configuredCount === relevantFlows.length ? "default" : "secondary"} className="gap-2">
+                <CheckCircle2 className="h-3 w-3" />
+                <span className="font-semibold">{configuredCount}</span>
+                <span className="text-muted-foreground">of {relevantFlows.length} configured</span>
+              </Badge>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="relative flex-1 min-w-[250px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter any data..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-                data-testid="input-search-flows"
-              />
-              {searchTerm && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7"
-                  onClick={() => setSearchTerm("")}
-                  data-testid="button-clear-search"
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search flows by name, type, sender..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+              data-testid="input-search-flows"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchTerm("")}
+                data-testid="button-clear-search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {Object.entries(flowsByProcess).map(([processName, processFlows]) => {
+              const isExpanded = expandedProcesses.has(processName);
+              const selectedInProcess = processFlows.filter((f) => f.selected).length;
+              const configuredInProcess = processFlows.filter((f) => f.transactionType).length;
+
+              return (
+                <Collapsible
+                  key={processName}
+                  open={isExpanded}
+                  onOpenChange={() => toggleProcess(processName)}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              onClick={handleToggleAll}
-              data-testid="button-toggle-all"
-            >
-              {filteredFlows.every((f) => f.selected) ? "Deselect" : "Select"} All Visible
-            </Button>
+                  <Card className="border-2">
+                    <CollapsibleTrigger asChild>
+                      <div className="cursor-pointer hover-elevate active-elevate-2 transition-colors">
+                        <CardHeader className="pb-4">
+                          <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 flex-1">
+                              {isExpanded ? (
+                                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                              ) : (
+                                <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                              )}
+                              <div>
+                                <h3 className="font-semibold text-lg">{processName}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {processFlows.length} flow{processFlows.length !== 1 ? 's' : ''} available
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="outline">
+                                {selectedInProcess}/{processFlows.length} selected
+                              </Badge>
+                              <Badge
+                                variant={
+                                  configuredInProcess === processFlows.length
+                                    ? "default"
+                                    : configuredInProcess > 0
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                              >
+                                {configuredInProcess}/{processFlows.length} configured
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </div>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent>
+                      <CardContent className="pt-0">
+                        <div className="mb-4 flex items-center justify-between">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleAllInProcess(processName);
+                            }}
+                            data-testid={`button-toggle-all-${processName}`}
+                          >
+                            {selectedInProcess === processFlows.length
+                              ? "Deselect All"
+                              : "Select All"}
+                          </Button>
+                        </div>
+
+                        <div className="border rounded-md overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-muted/50 border-b">
+                                  <th className="text-left p-3 text-sm font-medium w-12">#</th>
+                                  <th className="text-left p-3 text-sm font-medium">Function</th>
+                                  <th className="text-left p-3 text-sm font-medium">Message Type</th>
+                                  <th className="text-left p-3 text-sm font-medium">Sender → Receiver</th>
+                                  <th className="text-center p-3 text-sm font-medium w-32">Status</th>
+                                  <th className="text-center p-3 text-sm font-medium w-32">Actions</th>
+                                  <th className="text-center p-3 text-sm font-medium w-20">Select</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {processFlows.map((flow, index) => (
+                                  <tr
+                                    key={flow.id}
+                                    className={`hover-elevate transition-colors ${
+                                      flow.selected ? "bg-muted/30" : ""
+                                    }`}
+                                    data-testid={`row-flow-${flow.id}`}
+                                  >
+                                    <td className="p-3 text-muted-foreground font-medium text-sm">
+                                      {index + 1}
+                                    </td>
+                                    <td className="p-3 text-sm">{flow.function}</td>
+                                    <td className="p-3">
+                                      <Badge variant="secondary" className="font-mono text-xs">
+                                        {flow.msgType}
+                                      </Badge>
+                                    </td>
+                                    <td className="p-3 text-sm">
+                                      <span className="font-medium">{flow.sender}</span>
+                                      <span className="text-muted-foreground mx-1">→</span>
+                                      <span className="font-medium">{flow.receiver}</span>
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {flow.transactionType ? (
+                                        <Badge variant="outline" className="gap-1">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          Configured
+                                        </Badge>
+                                      ) : (
+                                        <Badge variant="secondary">Not configured</Badge>
+                                      )}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleConfigure(flow)}
+                                        data-testid={`button-configure-${flow.id}`}
+                                      >
+                                        <Settings2 className="h-4 w-4 mr-1" />
+                                        Configure
+                                      </Button>
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      <Checkbox
+                                        checked={flow.selected}
+                                        onCheckedChange={() => handleToggle(flow.id)}
+                                        data-testid={`checkbox-flow-${flow.id}`}
+                                      />
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+              );
+            })}
           </div>
 
-          <div className="border rounded-md overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Business Process</TableHead>
-                  <TableHead>Function</TableHead>
-                  <TableHead>Message Type</TableHead>
-                  <TableHead className="w-32 text-center">Status</TableHead>
-                  <TableHead className="w-32 text-center">Actions</TableHead>
-                  <TableHead className="w-20 text-center">Select</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredFlows.length > 0 ? (
-                  filteredFlows.map((flow, index) => (
-                    <TableRow
-                      key={flow.id}
-                      className={flow.selected ? "bg-muted/30" : ""}
-                      data-testid={`row-flow-${flow.id}`}
-                    >
-                      <TableCell className="font-medium text-muted-foreground">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {flow.businessProcess}
-                      </TableCell>
-                      <TableCell className="text-sm">{flow.function}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-mono text-xs">
-                          {flow.msgType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {flow.transactionType ? (
-                          <Badge variant="outline" className="gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Configured
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">Not configured</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleConfigure(flow)}
-                          data-testid={`button-configure-${flow.id}`}
-                        >
-                          <Settings2 className="h-4 w-4 mr-1" />
-                          Configure
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={flow.selected}
-                          onCheckedChange={() => handleToggle(flow.id)}
-                          data-testid={`checkbox-flow-${flow.id}`}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      No flows match your search criteria
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          {selectedBusinessProcesses.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-lg font-medium mb-2">No business processes selected</p>
+              <p className="text-sm">Please go back to Step 2 and select at least one business process</p>
+            </div>
+          )}
 
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground pt-2">
-            <div>
-              <span className="font-medium text-foreground">{businessProcessCount}</span> Business
-              Processes selected
+          {selectedBusinessProcesses.length > 0 && Object.keys(flowsByProcess).length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-lg font-medium mb-2">No flows match your search</p>
+              <p className="text-sm">Try adjusting your search criteria</p>
             </div>
-            <div>•</div>
-            <div>
-              <span className="font-medium text-foreground">{selectedCount}</span> Message flows
-              selected out of {flows.length}
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -228,7 +341,7 @@ export default function FlowsMessagesTable({ flows, onChange }: FlowsMessagesTab
           <DialogHeader>
             <DialogTitle>Configure Message Flow</DialogTitle>
             <DialogDescription>
-              Set all parameters for {editingFlow?.msgType} - {editingFlow?.function}
+              {editingFlow?.businessProcess} - {editingFlow?.msgType} - {editingFlow?.function}
             </DialogDescription>
           </DialogHeader>
 

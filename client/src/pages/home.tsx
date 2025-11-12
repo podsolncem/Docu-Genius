@@ -62,6 +62,7 @@ export default function Home() {
   ]);
 
   const [flows, setFlows] = useState<MessageFlow[]>([
+    // Participant to Participant flows
     {
       id: "1",
       businessProcess: "Participant to Participant",
@@ -118,6 +119,7 @@ export default function Home() {
       priority: "99",
       selected: false,
     },
+    // 3d party payments flows
     {
       id: "5",
       businessProcess: "3d party payments",
@@ -146,6 +148,94 @@ export default function Home() {
       priority: "N/A",
       selected: false,
     },
+    // Participant to CB flows
+    {
+      id: "7",
+      businessProcess: "Participant to CB",
+      function: "B1 -> CB (Tax payment)",
+      msgType: "pacs.008",
+      sender: "B1",
+      receiver: "CB",
+      debitAccount: "B1 SA",
+      creditAccount: "CB SA",
+      futureDated: false,
+      queueType: "T+0",
+      priority: "50",
+      selected: false,
+    },
+    {
+      id: "8",
+      businessProcess: "Participant to CB",
+      function: "B1 -> CB (Reserve requirement)",
+      msgType: "pacs.009",
+      sender: "B1",
+      receiver: "CB",
+      debitAccount: "B1 SA",
+      creditAccount: "CB SA",
+      futureDated: false,
+      queueType: "T+0",
+      priority: "70",
+      selected: false,
+    },
+    // CB to Participant flows
+    {
+      id: "9",
+      businessProcess: "CB to Participant",
+      function: "CB -> B1 (Liquidity provision)",
+      msgType: "pacs.008",
+      sender: "CB",
+      receiver: "B1",
+      debitAccount: "CB SA",
+      creditAccount: "B1 SA",
+      futureDated: false,
+      queueType: "T+0",
+      priority: "99",
+      selected: false,
+    },
+    {
+      id: "10",
+      businessProcess: "CB to Participant",
+      function: "CB -> B1 (Refund)",
+      msgType: "pacs.004",
+      sender: "CB",
+      receiver: "B1",
+      debitAccount: "CB SA",
+      creditAccount: "B1 SA",
+      futureDated: false,
+      queueType: "T+0",
+      priority: "50",
+      selected: false,
+    },
+    // Clearing system flows
+    {
+      id: "11",
+      businessProcess: "Clearing system",
+      function: "Clearing settlement",
+      msgType: "pacs.008",
+      sender: "Clearing",
+      receiver: "RTGS",
+      debitAccount: "CLR SA",
+      creditAccount: "RTGS SA",
+      futureDated: false,
+      queueType: "T+1",
+      priority: "70",
+      selected: false,
+    },
+    // Treasury payments flows
+    {
+      id: "12",
+      businessProcess: "Treasury payments",
+      function: "Treasury -> B1 (Salary)",
+      msgType: "pacs.008",
+      sender: "Treasury",
+      receiver: "B1",
+      debitAccount: "TRES SA",
+      creditAccount: "B1 SA",
+      futureDated: true,
+      queueType: "T+0..9",
+      priority: "50",
+      selected: false,
+    },
   ]);
 
   const [params, setParams] = useState<DocumentParams>({
@@ -163,6 +253,10 @@ export default function Home() {
     language: "english",
     timezone: "gmt+1",
   });
+
+  const selectedBusinessProcesses = processes
+    .filter((p) => p.selected)
+    .map((p) => p.name);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -231,7 +325,13 @@ export default function Home() {
           {currentStep === 1 && (
             <BusinessProcessSelector processes={processes} onChange={setProcesses} />
           )}
-          {currentStep === 2 && <FlowsMessagesTable flows={flows} onChange={setFlows} />}
+          {currentStep === 2 && (
+            <FlowsMessagesTable
+              flows={flows}
+              selectedBusinessProcesses={selectedBusinessProcesses}
+              onChange={setFlows}
+            />
+          )}
           {currentStep === 3 && <ParametersForm params={params} onChange={setParams} />}
           {currentStep === 4 && (
             <GenerateStep

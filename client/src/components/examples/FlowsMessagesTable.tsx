@@ -6,7 +6,7 @@ export default function FlowsMessagesTableExample() {
     {
       id: '1',
       businessProcess: 'Participant to Participant',
-      function: 'B1 -> B2 (Direct credit)',
+      flow: 'B1 -> B2 (Direct credit)',
       msgType: 'pacs.008',
       sender: 'B1',
       receiver: 'B2',
@@ -17,12 +17,11 @@ export default function FlowsMessagesTableExample() {
       priority: '70',
       selected: true,
       transactionType: 'SEPA',
-      settlementMethod: 'INDA',
     },
     {
       id: '2',
       businessProcess: 'Participant to Participant',
-      function: 'B1 -> B2 (Direct credit)',
+      flow: 'B1 -> B2 (Direct credit)',
       msgType: 'pacs.009',
       sender: 'B1',
       receiver: 'B2',
@@ -36,7 +35,7 @@ export default function FlowsMessagesTableExample() {
     {
       id: '3',
       businessProcess: 'Participant to Participant',
-      function: 'B1 -> B2 (Cash reservation)',
+      flow: 'B1 -> B2 (Cash reservation)',
       msgType: 'pacs.008',
       sender: 'B1',
       receiver: 'B2',
@@ -50,7 +49,7 @@ export default function FlowsMessagesTableExample() {
     {
       id: '4',
       businessProcess: '3d party payments',
-      function: '3d party',
+      flow: '3d party',
       msgType: 'pacs.008',
       sender: 'External',
       receiver: 'CB',

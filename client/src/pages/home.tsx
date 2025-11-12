@@ -66,7 +66,7 @@ export default function Home() {
     {
       id: "1",
       businessProcess: "Participant to Participant",
-      function: "B1 -> B2 (Direct credit)",
+      flow: "B1 -> B2 (Direct credit)",
       msgType: "pacs.008",
       sender: "B1",
       receiver: "B2",
@@ -80,7 +80,7 @@ export default function Home() {
     {
       id: "2",
       businessProcess: "Participant to Participant",
-      function: "B1 -> B2 (Direct credit)",
+      flow: "B1 -> B2 (Direct credit)",
       msgType: "pacs.009",
       sender: "B1",
       receiver: "B2",
@@ -94,7 +94,7 @@ export default function Home() {
     {
       id: "3",
       businessProcess: "Participant to Participant",
-      function: "B1 -> B2 (Cash reservation)",
+      flow: "B1 -> B2 (Cash reservation)",
       msgType: "pacs.008",
       sender: "B1",
       receiver: "B2",
@@ -108,7 +108,7 @@ export default function Home() {
     {
       id: "4",
       businessProcess: "Participant to Participant",
-      function: "Payment return B2 -> B1 (Direct credit)",
+      flow: "Payment return B2 -> B1 (Direct credit)",
       msgType: "pacs.004",
       sender: "B2",
       receiver: "B1",
@@ -123,7 +123,7 @@ export default function Home() {
     {
       id: "5",
       businessProcess: "3d party payments",
-      function: "3d party",
+      flow: "3d party",
       msgType: "pacs.008",
       sender: "External",
       receiver: "CB",
@@ -137,7 +137,7 @@ export default function Home() {
     {
       id: "6",
       businessProcess: "3d party payments",
-      function: "3d party",
+      flow: "3d party",
       msgType: "pacs.009",
       sender: "External",
       receiver: "CB",
@@ -152,7 +152,7 @@ export default function Home() {
     {
       id: "7",
       businessProcess: "Participant to CB",
-      function: "B1 -> CB (Tax payment)",
+      flow: "B1 -> CB (Tax payment)",
       msgType: "pacs.008",
       sender: "B1",
       receiver: "CB",
@@ -166,7 +166,7 @@ export default function Home() {
     {
       id: "8",
       businessProcess: "Participant to CB",
-      function: "B1 -> CB (Reserve requirement)",
+      flow: "B1 -> CB (Reserve requirement)",
       msgType: "pacs.009",
       sender: "B1",
       receiver: "CB",
@@ -181,7 +181,7 @@ export default function Home() {
     {
       id: "9",
       businessProcess: "CB to Participant",
-      function: "CB -> B1 (Liquidity provision)",
+      flow: "CB -> B1 (Liquidity provision)",
       msgType: "pacs.008",
       sender: "CB",
       receiver: "B1",
@@ -195,7 +195,7 @@ export default function Home() {
     {
       id: "10",
       businessProcess: "CB to Participant",
-      function: "CB -> B1 (Refund)",
+      flow: "CB -> B1 (Refund)",
       msgType: "pacs.004",
       sender: "CB",
       receiver: "B1",
@@ -210,7 +210,7 @@ export default function Home() {
     {
       id: "11",
       businessProcess: "Clearing system",
-      function: "Clearing settlement",
+      flow: "Clearing settlement",
       msgType: "pacs.008",
       sender: "Clearing",
       receiver: "RTGS",
@@ -225,7 +225,7 @@ export default function Home() {
     {
       id: "12",
       businessProcess: "Treasury payments",
-      function: "Treasury -> B1 (Salary)",
+      flow: "Treasury -> B1 (Salary)",
       msgType: "pacs.008",
       sender: "Treasury",
       receiver: "B1",

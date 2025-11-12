@@ -14,7 +14,7 @@ import { Search, X, Settings2, CheckCircle2, ChevronDown, ChevronRight } from "l
 export interface MessageFlow {
   id: string;
   businessProcess: string;
-  function: string;
+  flow: string;
   msgType: string;
   sender: string;
   receiver: string;
@@ -24,12 +24,10 @@ export interface MessageFlow {
   queueType: string;
   priority: string;
   selected: boolean;
-  // Extended parameters
+  // Extended parameters - to be filled from Excel data
   transactionType?: string;
   localInstrument?: string;
   serviceLevel?: string;
-  chargeBearer?: string;
-  settlementMethod?: string;
   clearingChannel?: string;
   instructionPriority?: string;
   paymentPurpose?: string;
@@ -64,7 +62,7 @@ export default function FlowsMessagesTable({
     const search = searchTerm.toLowerCase();
     return (
       flow.businessProcess.toLowerCase().includes(search) ||
-      flow.function.toLowerCase().includes(search) ||
+      flow.flow.toLowerCase().includes(search) ||
       flow.msgType.toLowerCase().includes(search) ||
       flow.sender.toLowerCase().includes(search)
     );
@@ -246,7 +244,7 @@ export default function FlowsMessagesTable({
                               <thead>
                                 <tr className="bg-muted/50 border-b">
                                   <th className="text-left p-3 text-sm font-medium w-12">#</th>
-                                  <th className="text-left p-3 text-sm font-medium">Function</th>
+                                  <th className="text-left p-3 text-sm font-medium">Flow</th>
                                   <th className="text-left p-3 text-sm font-medium">Message Type</th>
                                   <th className="text-left p-3 text-sm font-medium">Sender → Receiver</th>
                                   <th className="text-center p-3 text-sm font-medium w-32">Status</th>
@@ -266,7 +264,7 @@ export default function FlowsMessagesTable({
                                     <td className="p-3 text-muted-foreground font-medium text-sm">
                                       {index + 1}
                                     </td>
-                                    <td className="p-3 text-sm">{flow.function}</td>
+                                    <td className="p-3 text-sm">{flow.flow}</td>
                                     <td className="p-3">
                                       <Badge variant="secondary" className="font-mono text-xs">
                                         {flow.msgType}
@@ -341,7 +339,7 @@ export default function FlowsMessagesTable({
           <DialogHeader>
             <DialogTitle>Configure Message Flow</DialogTitle>
             <DialogDescription>
-              {editingFlow?.businessProcess} - {editingFlow?.msgType} - {editingFlow?.function}
+              {editingFlow?.businessProcess} - {editingFlow?.msgType} - {editingFlow?.flow}
             </DialogDescription>
           </DialogHeader>
 
@@ -457,45 +455,10 @@ export default function FlowsMessagesTable({
                       data-testid="input-credit-account"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="settlement-method">Settlement Method</Label>
-                    <Select
-                      value={editingFlow.settlementMethod || ""}
-                      onValueChange={(value) =>
-                        setEditingFlow({ ...editingFlow, settlementMethod: value })
-                      }
-                    >
-                      <SelectTrigger id="settlement-method" data-testid="select-settlement-method">
-                        <SelectValue placeholder="Select method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INDA">INDA - Intra-Day</SelectItem>
-                        <SelectItem value="INGA">INGA - Intra-Day Gross</SelectItem>
-                        <SelectItem value="COVE">COVE - Cover</SelectItem>
-                        <SelectItem value="CLRG">CLRG - Clearing</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="charge-bearer">Charge Bearer</Label>
-                    <Select
-                      value={editingFlow.chargeBearer || ""}
-                      onValueChange={(value) =>
-                        setEditingFlow({ ...editingFlow, chargeBearer: value })
-                      }
-                    >
-                      <SelectTrigger id="charge-bearer" data-testid="select-charge-bearer">
-                        <SelectValue placeholder="Select bearer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="DEBT">DEBT - Debtor</SelectItem>
-                        <SelectItem value="CRED">CRED - Creditor</SelectItem>
-                        <SelectItem value="SHAR">SHAR - Shared</SelectItem>
-                        <SelectItem value="SLEV">SLEV - Service Level</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Note: Additional account parameters from your Excel file will be added here once you share the column list.
+                </p>
               </TabsContent>
 
               <TabsContent value="advanced" className="space-y-4 mt-4">

@@ -48,14 +48,17 @@ export default function ParametersForm({ params, onChange }: ParametersFormProps
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pseudo-bics">Pseudo-BICs</Label>
+              <Label htmlFor="pseudo-bics">Pseudo-BICs (optional)</Label>
               <Input
                 id="pseudo-bics"
-                placeholder="Enter pseudo-BICs"
+                placeholder="Enter pseudo-BICs if used"
                 value={params.pseudoBics}
                 onChange={(e) => onChange({ ...params, pseudoBics: e.target.value })}
                 data-testid="input-pseudo-bics"
               />
+              <p className="text-xs text-muted-foreground">
+                Leave empty if not applicable
+              </p>
             </div>
           </div>
         </CardContent>
@@ -68,14 +71,17 @@ export default function ParametersForm({ params, onChange }: ParametersFormProps
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="ibans">IBANs/BBANs</Label>
+            <Label htmlFor="ibans">Account Numbers</Label>
             <Input
               id="ibans"
-              placeholder="Enter account numbers"
+              placeholder="Enter account numbers (IBANs, BBANs, or other formats)"
               value={params.ibans}
               onChange={(e) => onChange({ ...params, ibans: e.target.value })}
               data-testid="input-ibans"
             />
+            <p className="text-xs text-muted-foreground">
+              Can be IBANs, BBANs, or any account number format
+            </p>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">

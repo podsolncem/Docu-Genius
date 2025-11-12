@@ -1,31 +1,156 @@
 import { useState } from "react";
 import StepIndicator, { Step } from "@/components/StepIndicator";
-import DocumentParametersForm, { DocumentParameters } from "@/components/DocumentParametersForm";
-import DataDictionaryEditor, { DictionaryEntry } from "@/components/DataDictionaryEditor";
-import XSDUploader, { UploadedFile } from "@/components/XSDUploader";
-import DocumentPreview from "@/components/DocumentPreview";
+import IntroStep from "@/components/IntroStep";
+import BusinessProcessSelector, { BusinessProcess } from "@/components/BusinessProcessSelector";
+import FlowsMessagesTable, { MessageFlow } from "@/components/FlowsMessagesTable";
+import ParametersForm, { DocumentParams } from "@/components/ParametersForm";
+import GenerateStep from "@/components/GenerateStep";
 import NavigationButtons from "@/components/NavigationButtons";
 import { useToast } from "@/hooks/use-toast";
 
 const steps: Step[] = [
-  { id: 1, name: "Parameters", description: "Basic info" },
-  { id: 2, name: "Dictionary", description: "Edit data" },
-  { id: 3, name: "Schema", description: "Upload XSD" },
-  { id: 4, name: "Preview", description: "Review" },
-  { id: 5, name: "Generate", description: "Create document" },
+  { id: 1, name: "Intro", description: "Overview" },
+  { id: 2, name: "Business Processes", description: "Select processes" },
+  { id: 3, name: "Flows & Messages", description: "Configure flows" },
+  { id: 4, name: "Parameters", description: "Set parameters" },
+  { id: 5, name: "Generate", description: "Get document" },
 ];
 
 export default function Home() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
-  const [parameters, setParameters] = useState<DocumentParameters>({
-    title: "",
-    author: "",
-    documentType: "",
-    description: "",
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+
+  const [processes, setProcesses] = useState<BusinessProcess[]>([
+    {
+      id: 1,
+      name: "Participant to Participant",
+      description: "Payments from RTGS participants",
+      selected: false,
+    },
+    {
+      id: 2,
+      name: "Participant to CB",
+      description: "Payments from RTGS participants to Central Bank",
+      selected: false,
+    },
+    {
+      id: 3,
+      name: "CB to Participant",
+      description: "Payments from Central Bank to RTGS participants",
+      selected: false,
+    },
+    {
+      id: 4,
+      name: "3d party payments",
+      description: "Payments from external systems to Central Bank",
+      selected: false,
+    },
+    {
+      id: 5,
+      name: "Clearing system",
+      description: "Settlement of Clearing results",
+      selected: false,
+    },
+    {
+      id: 6,
+      name: "Treasury payments",
+      description: "Payments from and to Treasury",
+      selected: false,
+    },
+  ]);
+
+  const [flows, setFlows] = useState<MessageFlow[]>([
+    {
+      id: "1",
+      businessProcess: "Participant to Participant",
+      function: "B1 -> B2 (Direct credit)",
+      msgType: "pacs.008",
+      sender: "B1",
+      debitAccount: "B1 SA",
+      creditAccount: "B2 SA",
+      futureDated: true,
+      priority: "70",
+      selected: false,
+    },
+    {
+      id: "2",
+      businessProcess: "Participant to Participant",
+      function: "B1 -> B2 (Direct credit)",
+      msgType: "pacs.009",
+      sender: "B1",
+      debitAccount: "B1 SA",
+      creditAccount: "B2 SA",
+      futureDated: true,
+      priority: "70",
+      selected: false,
+    },
+    {
+      id: "3",
+      businessProcess: "Participant to Participant",
+      function: "B1 -> B2 (Cash reservation)",
+      msgType: "pacs.008",
+      sender: "B1",
+      debitAccount: "B1 SA",
+      creditAccount: "B2 SA",
+      futureDated: true,
+      priority: "99",
+      selected: false,
+    },
+    {
+      id: "4",
+      businessProcess: "Participant to Participant",
+      function: "Payment return B2 -> B1 (Direct credit)",
+      msgType: "pacs.004",
+      sender: "B2",
+      debitAccount: "B2 SA",
+      creditAccount: "B1 SA",
+      futureDated: true,
+      priority: "99",
+      selected: false,
+    },
+    {
+      id: "5",
+      businessProcess: "3d party payments",
+      function: "3d party",
+      msgType: "pacs.008",
+      sender: "External",
+      debitAccount: "EXT SA",
+      creditAccount: "CB SA",
+      futureDated: false,
+      priority: "N/A",
+      selected: false,
+    },
+    {
+      id: "6",
+      businessProcess: "3d party payments",
+      function: "3d party",
+      msgType: "pacs.009",
+      sender: "External",
+      debitAccount: "EXT SA",
+      creditAccount: "CB SA",
+      futureDated: false,
+      priority: "N/A",
+      selected: false,
+    },
+  ]);
+
+  const [params, setParams] = useState<DocumentParams>({
+    bics: "",
+    pseudoBics: "",
+    ibans: "",
+    majorCurrency: "",
+    fxCurrency: "",
+    scheme: "v-shape",
+    yamunaVersion: "latest",
+    isoRtgsParticipant: "",
+    isoRtgsAccount: "",
+    isoRtgs: "",
+    grouping: "bp",
+    language: "english",
+    timezone: "gmt+1",
   });
-  const [entries, setEntries] = useState<DictionaryEntry[]>([]);
-  const [xsdFile, setXsdFile] = useState<UploadedFile | null>(null);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -42,16 +167,33 @@ export default function Home() {
   };
 
   const handleGenerate = () => {
+    setIsGenerating(true);
+    console.log("Generating document with:", { processes, flows, params });
+    
+    setTimeout(() => {
+      setIsGenerating(false);
+      setIsComplete(true);
+      toast({
+        title: "Document Generated!",
+        description: "Your Message Formats & Samples document is ready for download.",
+      });
+    }, 2000);
+  };
+
+  const handleDownload = () => {
     toast({
-      title: "Document Generated!",
-      description: "Your Word document has been created and is ready for download.",
+      title: "Download Started",
+      description: "Your document is being downloaded.",
     });
-    console.log("Generating document with:", { parameters, entries, xsdFile });
+    console.log("Downloading document");
   };
 
   const isNextDisabled = () => {
-    if (currentStep === 0) {
-      return !parameters.title || !parameters.author || !parameters.documentType;
+    if (currentStep === 1) {
+      return !processes.some((p) => p.selected);
+    }
+    if (currentStep === 2) {
+      return !flows.some((f) => f.selected);
     }
     return false;
   };
@@ -60,9 +202,9 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <header className="border-b sticky top-0 bg-background z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold">Document Generator</h1>
+          <h1 className="text-2xl font-bold">Message Formats & Samples</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Automate your document creation with templates and data
+            Automated document generation for RTGS systems
           </p>
         </div>
       </header>
@@ -73,33 +215,18 @@ export default function Home() {
         </div>
 
         <div className="mb-8">
-          {currentStep === 0 && (
-            <DocumentParametersForm
-              parameters={parameters}
-              onChange={setParameters}
-            />
-          )}
+          {currentStep === 0 && <IntroStep />}
           {currentStep === 1 && (
-            <DataDictionaryEditor entries={entries} onChange={setEntries} />
+            <BusinessProcessSelector processes={processes} onChange={setProcesses} />
           )}
-          {currentStep === 2 && (
-            <XSDUploader file={xsdFile} onFileChange={setXsdFile} />
-          )}
-          {currentStep === 3 && (
-            <DocumentPreview
-              parameters={parameters}
-              entries={entries}
-              xsdFile={xsdFile}
-            />
-          )}
+          {currentStep === 2 && <FlowsMessagesTable flows={flows} onChange={setFlows} />}
+          {currentStep === 3 && <ParametersForm params={params} onChange={setParams} />}
           {currentStep === 4 && (
-            <div className="max-w-3xl mx-auto text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Ready to Generate</h2>
-              <p className="text-muted-foreground mb-8">
-                Click the "Generate Document" button below to create your Word
-                document with all the parameters and data you've configured.
-              </p>
-            </div>
+            <GenerateStep
+              isGenerating={isGenerating}
+              isComplete={isComplete}
+              onDownload={handleDownload}
+            />
           )}
         </div>
 

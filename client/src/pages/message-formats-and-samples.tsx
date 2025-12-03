@@ -16,7 +16,7 @@ const steps: Step[] = [
   { id: 5, name: "Generate", description: "Get document" },
 ];
 
-export default function Home() {
+export default function MessageFormatsAndSamples() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
